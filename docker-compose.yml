@@ -1,0 +1,13 @@
+version: '3.8'
+
+    services:
+      fmerids-app:
+        build: ./backend
+        container_name: fmerids-prod
+        restart: always
+        ports:
+          - "443:5001" # Mappa la porta 443 (HTTPS) dell'host alla porta 5001 del container
+        volumes:
+          - ./certs:/certs:ro # Monta la cartella dei certificati in sola lettura
+        environment:
+          - FLASK_ENV=production
