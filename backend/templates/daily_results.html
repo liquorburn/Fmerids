@@ -1,0 +1,64 @@
+{% if results %}
+    {# Filtra le ore diurne e notturne #}
+    {% set dayHours = [] %}
+    {% set nightHours = [] %}
+    {% for hour in results.planetary_hours %}
+        {% if hour.type == 'Day' %}
+            {% set _ = dayHours.append(hour) %}
+        {% else %}
+            {% set _ = nightHours.append(hour) %}
+        {% endif %}
+    {% endfor %}
+
+    {# Riepilogo del Giorno #}
+    <div class="card bg-dark mb-4">
+        <div class="card-body">
+            <h4 class="card-title">Riepilogo per {{ results.date | format_date }}</h4>
+            <div class="row text-center">
+                <div class="col-md-3"><strong>Alba:</strong><br>{{ results.sun_info.sunrise | format_time }}</div>
+                <div class="col-md-3"><strong>Tramonto:</strong><br>{{ results.sun_info.sunset | format_time }}</div>
+                <div class="col-md-3"><strong>Segno Zodiacale:</strong><br>{{ results.zodiac_sign }}</div>
+                <div class="col-md-3"><strong>Fase Lunare:</strong><br>{{ results.moon_phase.phase }} ({{ results.moon_phase.illumination }}%)</div>
+            </div>
+        </div>
+    </div>
+
+    {# Funzione macro per non ripetere la tabella #}
+    {% macro hours_table(title, hours, duration_seconds) %}
+        <h5>{{ title }}</h5>
+        <table class="table table-sm table-hover">
+            <thead>
+                <tr>
+                    <th>Ora</th>
+                    <th>Inizio</th>
+                    <th>Durata</th>
+                    <th>Pianeta</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for h in hours %}
+                    <tr>
+                        <td>{{ h.hour if h.hour <= 12 else h.hour - 12 }}</td>
+                        <td>{{ h.start_time | format_time }}</td>
+                        <td>{{ duration_seconds | format_duration }}</td>
+                        <td>{{ h.planet }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endmacro %}
+
+    {# Rendering delle due tabelle #}
+    <div class="row">
+        <div class="col-md-6">
+            {{ hours_table('Ore Diurne', dayHours, results.durations.day_hour_seconds) }}
+        </div>
+        <div class="col-md-6">
+            {{ hours_table('Ore Notturne', nightHours, results.durations.night_hour_seconds) }}
+        </div>
+    </div>
+{% elif error %}
+    <div class="alert alert-danger">
+        <strong>Errore:</strong> {{ error }}
+    </div>
+{% endif %}

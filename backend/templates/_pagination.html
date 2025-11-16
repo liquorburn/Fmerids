@@ -1,0 +1,42 @@
+{% if search_results and search_results.total_pages > 1 %}
+<nav>
+    <ul class="pagination">
+        {# Pulsante Precedente #}
+        <li class="page-item {% if search_results.current_page == 1 %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('search', page=search_results.current_page - 1, **request.args) }}">Precedente</a>
+        </li>
+
+        {# Logica per visualizzare i numeri di pagina #}
+        {% set delta = 2 %}
+        {% set left = search_results.current_page - delta %}
+        {% set right = search_results.current_page + delta + 1 %}
+        {% set pages_to_show = [] %}
+        {% set last_page = 0 %}
+
+        {% for i in range(1, search_results.total_pages + 1) %}
+            {% if i == 1 or i == search_results.total_pages or (i >= left and i < right) %}
+                {% if last_page and i - last_page != 1 %}
+                    {% set _ = pages_to_show.append('...') %}
+                {% endif %}
+                {% set _ = pages_to_show.append(i) %}
+                {% set last_page = i %}
+            {% endif %}
+        {% endfor %}
+
+        {% for page_num in pages_to_show %}
+            {% if page_num == '...' %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% else %}
+                <li class="page-item {% if page_num == search_results.current_page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('search', page=page_num, **request.args) }}">{{ page_num }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+
+        {# Pulsante Successivo #}
+        <li class="page-item {% if search_results.current_page == search_results.total_pages %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('search', page=search_results.current_page + 1, **request.args) }}">Successivo</a>
+        </li>
+    </ul>
+</nav>
+{% endif %}

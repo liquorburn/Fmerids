@@ -1,0 +1,62 @@
+{# Questo template gestisce la visualizzazione dei risultati di ricerca #}
+
+{# 1. Mostra i controlli di ricerca (conteggio e selettore per pagina) #}
+{% include '_search_controls.html' %}
+
+{# 2. Gestisci la visualizzazione in base allo stato: errore, nessun risultato, o risultati trovati #}
+{% if error %}
+    {# Stato di Errore: se il backend ha passato un messaggio di errore #}
+    <div class="alert alert-danger mt-3">
+        <strong>Errore:</strong> {{ error }}
+    </div>
+
+{% elif search_results.total_results == 0 %}
+    {# Stato "Nessun Risultato": la ricerca è stata eseguita ma non ha prodotto risultati #}
+    {# Mostra questo messaggio solo se è stata effettivamente fatta una ricerca (controllando i query params) #}
+    {% if request.args.get('planet') or request.args.get('sign') or request.args.get('moon_phase') %}
+    <div class="alert alert-warning mt-3">
+        Nessun risultato trovato per i criteri specificati.
+    </div>
+    {% endif %}
+
+{% else %}
+    {# Stato "Risultati Trovati": ci sono risultati da mostrare #}
+    {% for group in search_results.results_for_page | groupby('date') %}
+        <div class="card bg-dark mb-3 mt-3">
+            <div class="card-header text-white">
+                <h5 class="card-title mb-0">{{ group.list[0].date | format_date }}</h5>
+            </div>
+            <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th>Orario</th>
+                            <th>Durata</th>
+                            <th>Pianeta</th>
+                            <th>Tipo</th>
+                            <th>Segno</th>
+                            <th>Fase Lunare</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in group.list %}
+                            <tr>
+                                <td>{{ item.start_time | format_time }}</td>
+                                <td>{{ item.duration_seconds | format_duration }}</td>
+                                <td>{{ item.planet }}</td>
+                                <td>{{ item.type }}</td>
+                                <td>{{ item.zodiac_sign }}</td>
+                                <td>{{ item.moon_phase }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endfor %}
+
+    {# 3. Mostra i controlli di paginazione se ci sono risultati #}
+    <div class="mt-4 d-flex justify-content-center">
+        {% include '_pagination.html' %}
+    </div>
+{% endif %}

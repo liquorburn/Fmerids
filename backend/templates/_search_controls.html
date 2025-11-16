@@ -1,0 +1,20 @@
+{% if search_results and search_results.total_results > 0 %}
+    <div class="d-flex justify-content-between align-items-center">
+        <p class="mb-0 text-muted">Trovati {{ search_results.total_results }} risultati.</p>
+        
+        <form action="{{ url_for('search') }}" method="GET" class="d-flex align-items-center">
+            {# Passa i parametri di ricerca correnti come campi nascosti per non perderli #}
+            <input type="hidden" name="planet" value="{{ request.args.get('planet', '') }}">
+            <input type="hidden" name="sign" value="{{ request.args.get('sign', '') }}">
+            <input type="hidden" name="moon_phase" value="{{ request.args.get('moon_phase', '') }}">
+            <input type="hidden" name="lat" value="{{ request.args.get('lat', '') }}">
+            <input type="hidden" name="lon" value="{{ request.args.get('lon', '') }}">
+
+            <select name="items_per_page" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+                {% for option in [15, 30, 50, 100] %}
+                    <option value="{{ option }}" {% if search_results.items_per_page == option %}selected{% endif %}>{{ option }} risultati</option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+{% endif %}

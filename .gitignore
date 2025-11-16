@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+.venvsource/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.pytest_cache/
+htmlcov/
+.mypy_cache/
+.dmypy.json
+.ruff_cache/
+
+# Data
+backend/data/locations.json
+
+# Ephemeris data (if generated/downloaded)
+de421.bsp
+
+# Docker
+# Docker images
+*.docker
+# Docker build artifacts
+*.tar.gz
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+
+# Frontend remnants (if not used anymore)
+frontend/

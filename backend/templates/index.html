@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <!-- Colonna dei form -->
+    <div class="col-lg-4">
+        <!-- Calcolo Giornaliero -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Calcolo Giornaliero</h5>
+            </div>
+            <div class="card-body">
+                <form id="calc-form" action="{{ url_for('calculate') }}" method="POST">
+                    <div class="mb-3">
+                        <label for="date" class="form-label">Data</label>
+                        <input type="date" class="form-control" id="date" name="date" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="lat" class="form-label">Latitudine</label>
+                        <input type="number" step="any" class="form-control" id="lat" name="lat" placeholder="Es. 41.9028" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="lon" class="form-label">Longitudine</label>
+                        <input type="number" step="any" class="form-control" id="lon" name="lon" placeholder="Es. 12.4964" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="alt" class="form-label">Altitudine (metri)</label>
+                        <input type="number" class="form-control" id="alt" name="alt" value="0">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Calcola</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Gestione Luoghi -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Gestione Luoghi</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="location-name" class="form-label">Nome Luogo</label>
+                    <input type="text" class="form-control" id="location-name" placeholder="Es. Casa, Ufficio...">
+                </div>
+                <div class="mb-3">
+                    <label for="saved-locations" class="form-label">Luoghi Salvati</label>
+                    <select id="saved-locations" class="form-select">
+                        <option selected disabled>Carica un luogo...</option>
+                    </select>
+                </div>
+                <div class="btn-group w-100" role="group">
+                    <button type="button" id="btn-save-location" class="btn btn-outline-success">Salva</button>
+                    <button type="button" id="btn-update-location" class="btn btn-outline-warning">Aggiorna</button>
+                    <button type="button" id="btn-delete-location" class="btn btn-outline-danger">Elimina</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ricerca Avanzata -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Ricerca Avanzata</h5>
+            </div>
+            <div class="card-body">
+                <form id="search-form" action="{{ url_for('search') }}" method="GET">
+                    {# Campi nascosti per passare lat/lon alla ricerca #}
+                    <input type="hidden" id="lat_search" name="lat" value="41.9028">
+                    <input type="hidden" id="lon_search" name="lon" value="12.4964">
+
+                    <div class="mb-3">
+                        <label for="search-planet" class="form-label">Pianeta</label>
+                        <select id="search-planet" name="planet" class="form-select">
+                            <option value="">Scegli un pianeta...</option>
+                            {% for p in metadata.planets %}
+                            <option value="{{ p }}" {% if request.args.get('planet') == p %}selected{% endif %}>{{ p }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="search-sign" class="form-label">Segno Zodiacale</label>
+                        <select id="search-sign" name="sign" class="form-select">
+                            <option value="">Scegli un segno...</option>
+                            {% for s in metadata.zodiac_signs %}
+                            <option value="{{ s }}" {% if request.args.get('sign') == s %}selected{% endif %}>{{ s }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="search-moon-phase" class="form-label">Fase Lunare</label>
+                        <select id="search-moon-phase" name="moon_phase" class="form-select">
+                            <option value="">Scegli una fase...</option>
+                            {% for phase in metadata.moon_phases %}
+                            <option value="{{ phase }}" {% if request.args.get('moon_phase') == phase %}selected{% endif %}>{{ phase }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Cerca</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Colonna dei risultati -->
+    <div class="col-lg-8">
+        <div id="search-controls" class="mb-3">
+            <!-- I controlli per la paginazione (es. risultati per pagina) verranno iniettati qui -->
+        </div>
+        <div id="results-container" class="position-relative">
+            {% if results %}
+                {% include 'daily_results.html' %}
+            {% elif search_results %}
+                {% include 'search_results.html' %}
+            {% else %}
+            <div class="alert alert-info">
+                Inserisci i dati nel form a sinistra per calcolare le ore planetarie.
+            </div>
+            {% endif %}
+        </div>
+        <div id="pagination-container" class="mt-4 d-flex justify-content-center">
+            <!-- La navigazione della pagina verrà iniettata qui -->
+        </div>
+    </div>
+</div>
+{% endblock %}
