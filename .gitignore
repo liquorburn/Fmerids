@@ -35,5 +35,10 @@ de421.bsp
 .idea/
 *.swp
 
-# Frontend remnants (if not used anymore)
+# Secrets
+# Ignore TLS certificates
+certs/
+
+# Obsolete
+# Ignore the old, now-unused frontend directory
 frontend/
