@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Copia il file delle dipendenze e installale
 COPY ./backend/requirements.txt .
-RUN pip install --no-cache-dir -r ./backend/requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copia il resto dell'applicazione backend nella directory di lavoro
 # Questo include app.py, le cartelle core/, api/, static/, templates/ etc.
