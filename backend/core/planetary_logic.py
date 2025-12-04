@@ -34,7 +34,7 @@ def get_planet_position_status(observer, planet_name, calculation_time):
         if planet_object.alt > 0:
             return "&#x2713;"
         else:
-            return "-"
+            return ""
     except (AttributeError, TypeError):
         # Gestisce casi in cui il nome del pianeta non è valido o altri errori
         return "N/D"
