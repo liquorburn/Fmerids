@@ -19,6 +19,27 @@ ZODIAC_SIGNS = [
 
 # --- Funzioni di Calcolo con PyEphem ---
 
+def get_planet_position_status(observer, planet_name, calculation_time):
+    """Calcola se un pianeta è sopra o sotto l'orizzonte."""
+    try:
+        # Imposta la data e l'ora dell'osservatore
+        observer.date = ephem.Date(calculation_time)
+        
+        # Crea l'oggetto del pianeta corretto
+        # PyEphem si aspetta nomi inglesi capitalizzati, es. "Mars", "Jupiter"
+        planet_object = getattr(ephem, planet_name)()
+        planet_object.compute(observer)
+        
+        # Controlla l'altitudine (in radianti). Positiva = sopra l'orizzonte.
+        if planet_object.alt > 0:
+            return "&#x2713;"
+        else:
+            return "-"
+    except (AttributeError, TypeError):
+        # Gestisce casi in cui il nome del pianeta non è valido o altri errori
+        return "N/D"
+
+
 def get_zodiac_sign(current_date: date) -> str:
     """Calcola il segno zodiacale basandosi sulla posizione del Sole usando PyEphem."""
     try:
@@ -70,17 +91,24 @@ def calculate_planetary_hours(calculation_date: date, latitude: float, longitude
     Calcola le ore planetarie per una data e una posizione geografica specifiche.
     """
     try:
-        # 1. Setup della location
-        observer = Observer(latitude=latitude, longitude=longitude, elevation=elevation)
+        # 1. Setup degli osservatori
+        astral_observer = Observer(latitude=latitude, longitude=longitude, elevation=elevation)
+        
+        ephem_observer = ephem.Observer()
+        ephem_observer.lat = str(latitude)
+        ephem_observer.lon = str(longitude)
+        ephem_observer.elevation = float(elevation)
+        ephem_observer.pressure = 0
+        ephem_observer.horizon = '0'
 
-        # 2. Calcolo alba e tramonto
-        sun_times = sun.sun(observer, date=calculation_date)
+        # 2. Calcolo alba e tramonto con Astral
+        sun_times = sun.sun(astral_observer, date=calculation_date)
         sunrise = sun_times["sunrise"]
         sunset = sun_times["sunset"]
         
         # Per la durata della notte, serve l'alba del giorno dopo
         tomorrow = calculation_date + timedelta(days=1)
-        sun_times_tomorrow = sun.sun(observer, date=tomorrow)
+        sun_times_tomorrow = sun.sun(astral_observer, date=tomorrow)
         sunrise_tomorrow = sun_times_tomorrow["sunrise"]
 
         # 3. Calcolo durata ore diurne e notturne
@@ -102,24 +130,32 @@ def calculate_planetary_hours(calculation_date: date, latitude: float, longitude
         # 5. Calcolo ore diurne
         current_time = sunrise
         for i in range(12):
-            planet_index = (start_index + i) % 7
+            planet_name = PLANETS[(start_index + i) % 7]
+            hour_midpoint = current_time + (day_hour_duration / 2)
+            position_status = get_planet_position_status(ephem_observer, planet_name, hour_midpoint)
+            
             planetary_hours.append({
                 "hour": i + 1,
                 "type": "Day",
                 "start_time": current_time.isoformat(),
-                "planet": PLANETS[planet_index]
+                "planet": planet_name,
+                "planet_position_status": position_status
             })
             current_time += day_hour_duration
 
         # 6. Calcolo ore notturne
         current_time = sunset
         for i in range(12):
-            planet_index = (start_index + 12 + i) % 7
+            planet_name = PLANETS[(start_index + 12 + i) % 7]
+            hour_midpoint = current_time + (night_hour_duration / 2)
+            position_status = get_planet_position_status(ephem_observer, planet_name, hour_midpoint)
+
             planetary_hours.append({
                 "hour": i + 13,
                 "type": "Night",
                 "start_time": current_time.isoformat(),
-                "planet": PLANETS[planet_index]
+                "planet": planet_name,
+                "planet_position_status": position_status
             })
             current_time += night_hour_duration
             
@@ -191,7 +227,8 @@ def search_planetary_hours(lat, lon, alt, planet=None, sign=None, moon_phase=Non
                         "type": hour['type'],
                         "duration_seconds": duration_seconds,
                         "zodiac_sign": daily_data.get('zodiac_sign'),
-                        "moon_phase": daily_data.get('moon_phase', {}).get('phase')
+                        "moon_phase": daily_data.get('moon_phase', {}).get('phase'),
+                        "planet_position_status": hour.get('planet_position_status', 'N/D')
                     })
         
         current_date += timedelta(days=1)

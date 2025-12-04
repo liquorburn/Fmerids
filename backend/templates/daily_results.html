@@ -33,6 +33,7 @@
                     <th>Inizio</th>
                     <th>Durata</th>
                     <th>Pianeta</th>
+                    <th>Posizione</th>
                 </tr>
             </thead>
             <tbody>
@@ -42,6 +43,7 @@
                         <td>{{ h.start_time | format_time }}</td>
                         <td>{{ duration_seconds | format_duration }}</td>
                         <td>{{ h.planet }}</td>
+                        <td>{{ h.get('planet_position_status', 'N/D') | safe }}</td>
                     </tr>
                 {% endfor %}
             </tbody>

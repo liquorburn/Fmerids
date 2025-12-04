@@ -33,6 +33,7 @@
                             <th>Orario</th>
                             <th>Durata</th>
                             <th>Pianeta</th>
+                            <th>Posizione</th>
                             <th>Tipo</th>
                             <th>Segno</th>
                             <th>Fase Lunare</th>
@@ -44,6 +45,7 @@
                                 <td>{{ item.start_time | format_time }}</td>
                                 <td>{{ item.duration_seconds | format_duration }}</td>
                                 <td>{{ item.planet }}</td>
+                                <td>{{ item.get('planet_position_status', 'N/D') | safe }}</td>
                                 <td>{{ item.type }}</td>
                                 <td>{{ item.zodiac_sign }}</td>
                                 <td>{{ item.moon_phase }}</td>
