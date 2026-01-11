@@ -1,9 +1,11 @@
 {% if search_results and search_results.total_pages > 1 %}
+{% set query_params = request.args.to_dict() %}
+{% set _ = query_params.pop('page', None) %}
 <nav>
     <ul class="pagination">
         {# Pulsante Precedente #}
         <li class="page-item {% if search_results.current_page == 1 %}disabled{% endif %}">
-            <a class="page-link" href="{{ url_for('search', page=search_results.current_page - 1, **request.args) }}">Precedente</a>
+            <a class="page-link" href="{{ url_for('search', page=search_results.current_page - 1, **query_params) }}">Precedente</a>
         </li>
 
         {# Logica per visualizzare i numeri di pagina #}
@@ -28,14 +30,14 @@
                 <li class="page-item disabled"><span class="page-link">...</span></li>
             {% else %}
                 <li class="page-item {% if page_num == search_results.current_page %}active{% endif %}">
-                    <a class="page-link" href="{{ url_for('search', page=page_num, **request.args) }}">{{ page_num }}</a>
+                    <a class="page-link" href="{{ url_for('search', page=page_num, **query_params) }}">{{ page_num }}</a>
                 </li>
             {% endif %}
         {% endfor %}
 
         {# Pulsante Successivo #}
         <li class="page-item {% if search_results.current_page == search_results.total_pages %}disabled{% endif %}">
-            <a class="page-link" href="{{ url_for('search', page=search_results.current_page + 1, **request.args) }}">Successivo</a>
+            <a class="page-link" href="{{ url_for('search', page=search_results.current_page + 1, **query_params) }}">Successivo</a>
         </li>
     </ul>
 </nav>

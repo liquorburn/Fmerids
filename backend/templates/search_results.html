@@ -20,6 +20,22 @@
     {% endif %}
 
 {% else %}
+    {% if search_results.results_for_page %}
+        {% set first_result = search_results.results_for_page[0] %}
+        {% set loc_data = first_result.search_location_data %}
+        <div class="card bg-dark mb-3 mt-3">
+            <div class="card-header text-white">
+                <h5 class="card-title mb-0">Luogo di Ricerca: 
+                    {% if loc_data.name %}
+                        {{ loc_data.name }} (Lat {{ "%.4f"|format(loc_data.latitude) }}, Lon {{ "%.4f"|format(loc_data.longitude) }}, Alt {{ "%.0f"|format(loc_data.elevation) }}m)
+                    {% else %}
+                        Lat {{ "%.4f"|format(loc_data.latitude) }}, Lon {{ "%.4f"|format(loc_data.longitude) }}, Alt {{ "%.0f"|format(loc_data.elevation) }}m
+                    {% endif %}
+                </h5>
+            </div>
+        </div>
+    {% endif %}
+
     {# Stato "Risultati Trovati": ci sono risultati da mostrare #}
     {% for group in search_results.results_for_page | groupby('date') %}
         <div class="card bg-dark mb-3 mt-3">
@@ -37,6 +53,7 @@
                             <th>Tipo</th>
                             <th>Segno</th>
                             <th>Fase Lunare</th>
+                            <th>Luna visibile</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -49,6 +66,7 @@
                                 <td>{{ item.type }}</td>
                                 <td>{{ item.zodiac_sign }}</td>
                                 <td>{{ item.moon_phase }}</td>
+                                <td>{% if item.is_moon_visible %}&#x2713;{% endif %}</td>
                             </tr>
                         {% endfor %}
                     </tbody>

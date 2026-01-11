@@ -13,7 +13,7 @@
     {# Riepilogo del Giorno #}
     <div class="card bg-dark mb-4">
         <div class="card-body">
-            <h4 class="card-title">Riepilogo per {{ results.date | format_date }}</h4>
+            <h4 class="card-title">Riepilogo per {{ results.date | format_date }}<br><small class="text-muted">Luogo: {% if results.location_name %}{{ results.location_name }} (Lat {{ "%.4f"|format(results.location.latitude) }}, Lon {{ "%.4f"|format(results.location.longitude) }}, Alt {{ "%.0f"|format(results.location.elevation) }}m){% else %}Lat {{ "%.4f"|format(results.location.latitude) }}, Lon {{ "%.4f"|format(results.location.longitude) }}, Alt {{ "%.0f"|format(results.location.elevation) }}m{% endif %}</small></h4>
             <div class="row text-center">
                 <div class="col-md-3"><strong>Alba:</strong><br>{{ results.sun_info.sunrise | format_time }}</div>
                 <div class="col-md-3"><strong>Tramonto:</strong><br>{{ results.sun_info.sunset | format_time }}</div>
@@ -34,6 +34,7 @@
                     <th>Durata</th>
                     <th>Pianeta</th>
                     <th>Visibile</th>
+                    <th>Luna</th>
                 </tr>
             </thead>
             <tbody>
@@ -44,6 +45,7 @@
                         <td>{{ duration_seconds | format_duration }}</td>
                         <td>{{ h.planet }}</td>
                         <td>{{ h.get('planet_position_status', 'N/D') | safe }}</td>
+                        <td>{% if h.is_moon_visible %}&#x2713;{% endif %}</td>
                     </tr>
                 {% endfor %}
             </tbody>

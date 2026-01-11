@@ -83,6 +83,16 @@ def create_app():
             lat = float(request.form.get('lat'))
             lon = float(request.form.get('lon'))
             alt = float(request.form.get('alt', 0))
+            location_name = request.form.get('location_name', '') # Read the location name
+            
+            context.update({
+                "date": date_str,
+                "lat": lat,
+                "lon": lon,
+                "alt": alt,
+                "location_name": location_name # Add location name to context
+            })
+
             calc_date = datetime.strptime(date_str, '%Y-%m-%d').date()
 
             results = calculate_planetary_hours(
@@ -91,6 +101,8 @@ def create_app():
                 longitude=lon,
                 elevation=alt
             )
+            # Add location_name to results for daily_results.html
+            results['location_name'] = location_name if location_name else f"Lat: {lat:.4f}, Lon: {lon:.4f}, Alt: {alt:.0f}m"
             context['results'] = results
         except (ValueError, TypeError) as e:
             context['error'] = f"Dati non validi: {e}"
@@ -123,10 +135,16 @@ def create_app():
             # Coordinate (devono essere fornite per la ricerca)
             lat = request.args.get('lat', type=float)
             lon = request.args.get('lon', type=float)
+            alt = request.args.get('alt', type=float) # Get alt from request.args
+            location_name = request.args.get('location_name', '') # Get location_name from request.args
 
             if lat is None or lon is None:
                 context['error'] = "Latitudine e Longitudine sono obbligatorie per la ricerca."
                 return render_template('index.html', **context)
+            
+            # If alt is None, default to 0
+            if alt is None:
+                alt = 0
 
             # Se non è stato specificato nessun criterio, non eseguire la ricerca
             if not any([planet, sign, moon_phase]):
@@ -136,10 +154,11 @@ def create_app():
             all_results = search_planetary_hours(
                 lat=lat,
                 lon=lon,
-                alt=0,
+                alt=alt, # Pass alt to search_planetary_hours
                 planet=planet or None,
                 sign=sign or None,
-                moon_phase=moon_phase or None
+                moon_phase=moon_phase or None,
+                location_name=location_name # Pass location_name to search_planetary_hours
             )
             
             total_results = len(all_results)

@@ -40,6 +40,17 @@ def get_planet_position_status(observer, planet_name, calculation_time):
         return "N/D"
 
 
+def is_moon_visible(observer, calculation_time):
+    """Calcola se la Luna è sopra l'orizzonte."""
+    try:
+        observer.date = ephem.Date(calculation_time)
+        moon = ephem.Moon()
+        moon.compute(observer)
+        return moon.alt > 0
+    except Exception:
+        return False
+
+
 def get_zodiac_sign(current_date: date) -> str:
     """Calcola il segno zodiacale basandosi sulla posizione del Sole usando PyEphem."""
     try:
@@ -133,13 +144,15 @@ def calculate_planetary_hours(calculation_date: date, latitude: float, longitude
             planet_name = PLANETS[(start_index + i) % 7]
             hour_midpoint = current_time + (day_hour_duration / 2)
             position_status = get_planet_position_status(ephem_observer, planet_name, hour_midpoint)
+            moon_visible = is_moon_visible(ephem_observer, hour_midpoint)
             
             planetary_hours.append({
                 "hour": i + 1,
                 "type": "Day",
                 "start_time": current_time.isoformat(),
                 "planet": planet_name,
-                "planet_position_status": position_status
+                "planet_position_status": position_status,
+                "is_moon_visible": moon_visible
             })
             current_time += day_hour_duration
 
@@ -149,13 +162,15 @@ def calculate_planetary_hours(calculation_date: date, latitude: float, longitude
             planet_name = PLANETS[(start_index + 12 + i) % 7]
             hour_midpoint = current_time + (night_hour_duration / 2)
             position_status = get_planet_position_status(ephem_observer, planet_name, hour_midpoint)
+            moon_visible = is_moon_visible(ephem_observer, hour_midpoint)
 
             planetary_hours.append({
                 "hour": i + 13,
                 "type": "Night",
                 "start_time": current_time.isoformat(),
                 "planet": planet_name,
-                "planet_position_status": position_status
+                "planet_position_status": position_status,
+                "is_moon_visible": moon_visible
             })
             current_time += night_hour_duration
             
@@ -165,7 +180,7 @@ def calculate_planetary_hours(calculation_date: date, latitude: float, longitude
 
         return {
             "date": calculation_date.isoformat(),
-            "location": {"latitude": latitude, "longitude": longitude},
+            "location": {"latitude": latitude, "longitude": longitude, "elevation": elevation},
             "sun_info": {
                 "sunrise": sunrise.isoformat(),
                 "sunset": sunset.isoformat()
@@ -184,7 +199,7 @@ def calculate_planetary_hours(calculation_date: date, latitude: float, longitude
         print(f"Error in calculate_planetary_hours: {e}")
         return {"error": "An error occurred during calculation. This might be due to the location being in a polar region where the sun does not set or rise."}
 
-def search_planetary_hours(lat, lon, alt, planet=None, sign=None, moon_phase=None):
+def search_planetary_hours(lat, lon, alt, planet=None, sign=None, moon_phase=None, location_name=""):
     """
     Cerca le ore planetarie che corrispondono ai criteri specificati in un anno.
     """
@@ -228,7 +243,14 @@ def search_planetary_hours(lat, lon, alt, planet=None, sign=None, moon_phase=Non
                         "duration_seconds": duration_seconds,
                         "zodiac_sign": daily_data.get('zodiac_sign'),
                         "moon_phase": daily_data.get('moon_phase', {}).get('phase'),
-                        "planet_position_status": hour.get('planet_position_status', 'N/D')
+                        "planet_position_status": hour.get('planet_position_status', 'N/D'),
+                        "is_moon_visible": hour.get('is_moon_visible', False),
+                        "search_location_data": { # Add location data here
+                            "latitude": lat,
+                            "longitude": lon,
+                            "elevation": alt,
+                            "name": location_name
+                        }
                     })
         
         current_date += timedelta(days=1)

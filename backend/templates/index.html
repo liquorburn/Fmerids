@@ -13,20 +13,21 @@
                 <form id="calc-form" action="{{ url_for('calculate') }}" method="POST">
                     <div class="mb-3">
                         <label for="date" class="form-label">Data</label>
-                        <input type="date" class="form-control" id="date" name="date" required>
+                        <input type="date" class="form-control" id="date" name="date" value="{{ date or '' }}" required>
                     </div>
                     <div class="mb-3">
                         <label for="lat" class="form-label">Latitudine</label>
-                        <input type="number" step="any" class="form-control" id="lat" name="lat" placeholder="Es. 41.9028" required>
+                        <input type="number" step="any" class="form-control" id="lat" name="lat" placeholder="Es. 41.9028" value="{{ lat or '' }}" required>
                     </div>
                     <div class="mb-3">
                         <label for="lon" class="form-label">Longitudine</label>
-                        <input type="number" step="any" class="form-control" id="lon" name="lon" placeholder="Es. 12.4964" required>
+                        <input type="number" step="any" class="form-control" id="lon" name="lon" placeholder="Es. 12.4964" value="{{ lon or '' }}" required>
                     </div>
                     <div class="mb-3">
                         <label for="alt" class="form-label">Altitudine (metri)</label>
-                        <input type="number" class="form-control" id="alt" name="alt" value="0">
+                        <input type="number" class="form-control" id="alt" name="alt" value="{{ alt or '0' }}">
                     </div>
+                    <input type="hidden" id="location_name" name="location_name" value="{{ location_name or '' }}">
                     <button type="submit" class="btn btn-primary w-100">Calcola</button>
                 </form>
             </div>
@@ -46,6 +47,11 @@
                     <label for="saved-locations" class="form-label">Luoghi Salvati</label>
                     <select id="saved-locations" class="form-select">
                         <option selected disabled>Carica un luogo...</option>
+                        {% if locations %}
+                            {% for name, data in locations.items() %}
+                                <option value="{{ name }}" data-lat="{{ data.lat }}" data-lon="{{ data.lon }}" data-alt="{{ data.alt }}">{{ name }}</option>
+                            {% endfor %}
+                        {% endif %}
                     </select>
                 </div>
                 <div class="btn-group w-100" role="group">
@@ -66,6 +72,8 @@
                     {# Campi nascosti per passare lat/lon alla ricerca #}
                     <input type="hidden" id="lat_search" name="lat" value="41.9028">
                     <input type="hidden" id="lon_search" name="lon" value="12.4964">
+                    <input type="hidden" id="alt_search" name="alt" value="0">
+                    <input type="hidden" id="location_name_search" name="location_name" value="">
 
                     <div class="mb-3">
                         <label for="search-planet" class="form-label">Pianeta</label>

@@ -4,6 +4,7 @@ import { getLocations, saveLocation, updateLocation, deleteLocation } from './ap
 const latInput = document.getElementById('lat');
 const lonInput = document.getElementById('lon');
 const altInput = document.getElementById('alt');
+const locationNameInputHidden = document.getElementById('location_name');
 
 // Elementi per la gestione dei luoghi
 const locationNameInput = document.getElementById('location-name');
@@ -15,36 +16,9 @@ const deleteLocationBtn = document.getElementById('btn-delete-location');
 // Elementi del form di ricerca (per la sincronizzazione)
 const latSearchInput = document.getElementById('lat_search');
 const lonSearchInput = document.getElementById('lon_search');
+const altSearchInput = document.getElementById('alt_search');
+const locationNameSearchInput = document.getElementById('location_name_search');
 
-
-// --- Logica di Gestione Luoghi (Client-Side) ---
-
-/**
- * Popola il menu a tendina dei luoghi salvati.
- * @param {object} locations - Un oggetto dove le chiavi sono i nomi dei luoghi.
- */
-function populateLocations(locations) {
-    savedLocationsSelect.innerHTML = '<option selected disabled>Carica un luogo...</option>';
-    for (const name in locations) {
-        const option = document.createElement('option');
-        option.value = name;
-        option.textContent = name;
-        savedLocationsSelect.appendChild(option);
-    }
-}
-
-/**
- * Carica i luoghi dal backend e popola il menu a tendina.
- */
-async function loadLocations() {
-    try {
-        const locations = await getLocations();
-        populateLocations(locations);
-    } catch (error) {
-        console.error("Impossibile caricare i luoghi:", error);
-        alert("Non è stato possibile caricare i luoghi salvati.");
-    }
-}
 
 /**
  * Gestisce il salvataggio di un nuovo luogo.
@@ -127,33 +101,30 @@ async function handleDeleteLocation() {
 /**
  * Carica i dati di un luogo selezionato nei campi del form.
  */
-async function handleLoadSelectedLocation() {
-    const name = savedLocationsSelect.value;
-    if (!name || name === 'Carica un luogo...') return;
+function handleLoadSelectedLocation() {
+    const selectedOption = savedLocationsSelect.options[savedLocationsSelect.selectedIndex];
+    if (!selectedOption || selectedOption.disabled) return;
 
-    try {
-        const locations = await getLocations();
-        const location = locations[name];
-        if (location) {
-            locationNameInput.value = name;
-            latInput.value = location.lat;
-            lonInput.value = location.lon;
-            altInput.value = location.alt;
-            // Aggiorna anche i campi nascosti della ricerca
-            if(latSearchInput) latSearchInput.value = location.lat;
-            if(lonSearchInput) lonSearchInput.value = location.lon;
-        }
-    } catch (error) {
-        alert(`Impossibile caricare i dati per "${name}": ${error.message}`);
+    const name = selectedOption.value;
+    const lat = selectedOption.dataset.lat;
+    const lon = selectedOption.dataset.lon;
+    const alt = selectedOption.dataset.alt;
+
+    if (name && lat !== undefined && lon !== undefined && alt !== undefined) {
+        locationNameInput.value = name;
+        latInput.value = lat;
+        lonInput.value = lon;
+        altInput.value = alt;
+        locationNameInputHidden.value = name;
+        if (locationNameSearchInput) locationNameSearchInput.value = name; // Also update search form
+        
+        // Aggiorna anche i campi nascosti della ricerca
+        if (latSearchInput) latSearchInput.value = lat;
+        if (lonSearchInput) lonSearchInput.value = lon;
+        if (altSearchInput) altSearchInput.value = alt; // Also update search form
+    } else {
+        alert(`I dati per "${name}" sono incompleti o corrotti.`);
     }
-}
-
-/**
- * Sincronizza i valori di lat/lon del form principale con i campi nascosti del form di ricerca.
- */
-function syncSearchCoords() {
-    if(latSearchInput) latSearchInput.value = latInput.value;
-    if(lonSearchInput) lonSearchInput.value = lonInput.value;
 }
 
 
@@ -165,9 +136,21 @@ if (updateLocationBtn) updateLocationBtn.addEventListener('click', handleUpdateL
 if (deleteLocationBtn) deleteLocationBtn.addEventListener('click', handleDeleteLocation);
 if (savedLocationsSelect) savedLocationsSelect.addEventListener('change', handleLoadSelectedLocation);
 
-// Listeners per sincronizzare le coordinate per la ricerca
-if (latInput) latInput.addEventListener('input', syncSearchCoords);
-if (lonInput) lonInput.addEventListener('input', syncSearchCoords);
+// Gestore unificato per la modifica manuale delle coordinate
+const handleCoordinateInputChange = () => {
+    // 1. Sincronizza i valori con i campi nascosti del form di ricerca
+    if (latSearchInput) latSearchInput.value = latInput.value;
+    if (lonSearchInput) lonSearchInput.value = lonInput.value;
+    if (altSearchInput) altSearchInput.value = altInput.value;
+    
+    // 2. Svuota il nome del luogo perché le coordinate sono state modificate manualmente
+    if (locationNameInputHidden) locationNameInputHidden.value = '';
+    if (locationNameSearchInput) locationNameSearchInput.value = '';
+};
+
+if (latInput) latInput.addEventListener('input', handleCoordinateInputChange);
+if (lonInput) lonInput.addEventListener('input', handleCoordinateInputChange);
+if (altInput) altInput.addEventListener('input', handleCoordinateInputChange);
 
 
 // --- Inizializzazione dell'Applicazione ---
@@ -181,9 +164,6 @@ function initializeApp() {
     if (!dateInput.value) {
         dateInput.value = new Date().toISOString().split('T')[0];
     }
-
-    // Carica i luoghi salvati (l'unica operazione asincrona necessaria all'avvio)
-    loadLocations();
 
     // Sincronizza le coordinate una volta al caricamento
     syncSearchCoords();
