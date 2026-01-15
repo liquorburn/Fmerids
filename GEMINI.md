@@ -83,7 +83,7 @@ Questa sezione descrive come effettuare il deployment dell'applicazione Fmerids 
 
 ### Creazione del Dockerfile
 
-Per containerizzare l'applicazione, è stato creato un `Dockerfile` nella directory `backend/`. Questo file ora include i parametri per avviare Gunicorn con TLS.
+L'applicazione è containerizzata per garantire coerenza tra ambiente di sviluppo e produzione. In produzione (es. Railway), il proxy gestisce l'HTTPS, quindi il container espone HTTP semplice sulla porta 5001.
 
 **`backend/Dockerfile`:**
 ```dockerfile
@@ -97,47 +97,39 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copia il resto dell'applicazione backend nella directory di lavoro
+# Copia il resto dell'applicazione backend
 COPY . .
+
+# Crea la directory data per i volumi persistenti
+RUN mkdir -p data
 
 # Esponi la porta su cui Gunicorn sarà in ascolto
 EXPOSE 5001
 
-# Comando per avviare l'applicazione in produzione con Gunicorn e TLS
-# I certificati verranno montati nel percorso /certs tramite Docker Compose.
-CMD ["gunicorn", "--workers", "4", "--bind", "0.0.0.0:5001", "--certfile", "/certs/cert.pem", "--keyfile", "/certs/key.pem", "app:app"]
+# Comando per avviare l'applicazione con Gunicorn
+CMD ["gunicorn", "--workers", "4", "--bind", "0.0.0.0:5001", "app:app"]
 ```
 
-### Istruzioni di Build e Avvio
+### Istruzioni di Deployment (Railway.app)
 
-Il metodo raccomandato per gestire il container in produzione è tramite `docker-compose`.
+Il metodo raccomandato per il deployment è tramite **Railway.app**, che offre integrazione nativa con Docker e gestione automatica dei certificati SSL.
 
-1.  **Preparare i Certificati TLS:**
-    - Crea una nuova directory nella root del progetto chiamata `certs`:
-      ```bash
-      mkdir certs
-      ```
-    - Inserisci il tuo file certificato (`cert.pem`) e la tua chiave privata (`key.pem`) all'interno di questa nuova directory.
-    - **Importante:** Assicurati di proteggere la chiave privata e non includerla in repository Git pubblici (aggiungi `certs/` al tuo file `.gitignore`).
+1.  **Preparazione del Volume Persistente:**
+    - Per evitare la perdita dei luoghi salvati (`locations.json`), è **obbligatorio** configurare un volume persistente.
+    - Nella dashboard di Railway, aggiungi un Volume e imposta il punto di montaggio (Mount Path) su `/app/data`.
 
-2.  **Creare il file `docker-compose.yml`:**
-    Crea un file chiamato `docker-compose.yml` nella directory radice del progetto (`/fmerids/`) con il seguente contenuto, che ora include il volume per i certificati e la porta per HTTPS:
+2.  **Configurazione del Dominio:**
+    - In Railway, vai in `Settings > Domains` e aggiungi il tuo dominio personalizzato.
+    - Configura i record DNS (CNAME per `www` e Record A per il dominio root) seguendo le istruzioni fornite dalla piattaforma.
 
-    ```yaml
-    version: '3.8'
+3.  **Variabili d'Ambiente:**
+    - `FLASK_ENV`: Impostata su `production`.
+    - `FLASK_DEBUG`: Impostata su `false`.
 
-    services:
-      fmerids-app:
-        build: ./backend
-        container_name: fmerids-prod
-        restart: always
-        ports:
-          - "443:5001" # Mappa la porta 443 (HTTPS) dell'host alla porta 5001 del container
-        volumes:
-          - ./certs:/certs:ro # Monta la cartella dei certificati in sola lettura
-        environment:
-          - FLASK_ENV=production
-    ```
+**Vantaggi di questa configurazione:**
+- **Zero Maintenance:** Non occorre gestire manualmente i certificati SSL.
+- **Persistenza:** I dati rimangono integri anche dopo il riavvio o il redeploy dei container.
+- **Scalabilità:** Gunicorn gestisce più worker per servire contemporaneamente più utenti.
 
 3.  **Avviare il Container:**
     Apri un terminale nella directory radice del progetto ed esegui il seguente comando:

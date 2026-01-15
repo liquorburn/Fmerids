@@ -1,3 +1,4 @@
+import os
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from datetime import datetime
@@ -16,8 +17,9 @@ def create_app():
     """
     app = Flask(__name__, template_folder='templates', static_folder='static')
     
-    app.debug = True
-    app.env = 'development'
+    # Configurazioni da variabili d'ambiente per la produzione
+    app.config['DEBUG'] = os.environ.get('FLASK_DEBUG', 'false').lower() == 'true'
+    app.config['ENV'] = os.environ.get('FLASK_ENV', 'production')
     
     # CORS è ancora utile per l'API di gestione dei luoghi che rimane asincrona
     CORS(app, resources={r"/api/*": {"origins": "*"}})
