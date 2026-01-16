@@ -1,4 +1,46 @@
-import { getLocations, saveLocation, updateLocation, deleteLocation } from './apiService.js';
+// --- Gestore LocalStorage ---
+
+const STORAGE_KEY = 'fmerids_saved_locations';
+
+/**
+ * Legge i luoghi salvati dal LocalStorage.
+ * @returns {Object} Dizionario dei luoghi { nome: { lat, lon, alt } }
+ */
+function getLocationsFromStorage() {
+    const data = localStorage.getItem(STORAGE_KEY);
+    return data ? JSON.parse(data) : {};
+}
+
+/**
+ * Salva i luoghi nel LocalStorage.
+ * @param {Object} locations - Dizionario dei luoghi
+ */
+function saveLocationsToStorage(locations) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
+}
+
+/**
+ * Aggiunge o aggiorna un luogo.
+ * @param {string} name 
+ * @param {Object} data { lat, lon, alt }
+ */
+function saveLocationLocal(name, data) {
+    const locations = getLocationsFromStorage();
+    locations[name] = data;
+    saveLocationsToStorage(locations);
+}
+
+/**
+ * Rimuove un luogo.
+ * @param {string} name 
+ */
+function deleteLocationLocal(name) {
+    const locations = getLocationsFromStorage();
+    if (locations[name]) {
+        delete locations[name];
+        saveLocationsToStorage(locations);
+    }
+}
 
 // --- Elementi del DOM ---
 const latInput = document.getElementById('lat');
@@ -19,11 +61,42 @@ const lonSearchInput = document.getElementById('lon_search');
 const altSearchInput = document.getElementById('alt_search');
 const locationNameSearchInput = document.getElementById('location_name_search');
 
+/**
+ * Carica i luoghi dal LocalStorage e popola la select.
+ */
+function loadLocations() {
+    const locations = getLocationsFromStorage();
+    
+    // Salva l'opzione attualmente selezionata per tentare di ripristinarla
+    const currentSelection = savedLocationsSelect.value;
+
+    // Pulisci la select mantenendo l'opzione di default
+    savedLocationsSelect.innerHTML = '<option selected disabled>Carica un luogo...</option>';
+
+    // Ordina i nomi alfabeticamente
+    const sortedNames = Object.keys(locations).sort((a, b) => a.localeCompare(b));
+
+    sortedNames.forEach(name => {
+        const data = locations[name];
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        option.dataset.lat = data.lat;
+        option.dataset.lon = data.lon;
+        option.dataset.alt = data.alt;
+        savedLocationsSelect.appendChild(option);
+    });
+
+    // Se il luogo selezionato esiste ancora, riselezionalo
+    if (locations[currentSelection]) {
+        savedLocationsSelect.value = currentSelection;
+    }
+}
 
 /**
  * Gestisce il salvataggio di un nuovo luogo.
  */
-async function handleSaveLocation() {
+function handleSaveLocation() {
     const name = locationNameInput.value.trim();
     const locationData = {
         lat: latInput.value,
@@ -37,10 +110,12 @@ async function handleSaveLocation() {
     }
 
     try {
-        await saveLocation(name, locationData);
+        saveLocationLocal(name, locationData);
         locationNameInput.value = ''; // Pulisci l'input
-        await loadLocations(); // Ricarica la lista
-        alert(`Luogo "${name}" salvato con successo!`);
+        loadLocations(); // Ricarica la lista
+        // Seleziona automaticamente il nuovo luogo
+        savedLocationsSelect.value = name;
+        alert(`Luogo "${name}" salvato con successo (nel browser)!`);
     } catch (error) {
         alert(`Errore nel salvataggio: ${error.message}`);
     }
@@ -49,7 +124,7 @@ async function handleSaveLocation() {
 /**
  * Gestisce l'aggiornamento di un luogo esistente.
  */
-async function handleUpdateLocation() {
+function handleUpdateLocation() {
     const name = savedLocationsSelect.value;
     if (!name || name === 'Carica un luogo...') {
         alert("Seleziona un luogo da aggiornare.");
@@ -63,8 +138,8 @@ async function handleUpdateLocation() {
     };
 
     try {
-        await updateLocation(name, locationData);
-        await loadLocations();
+        saveLocationLocal(name, locationData); // Sovrascrive
+        loadLocations();
         alert(`Luogo "${name}" aggiornato con successo!`);
     } catch (error) {
         alert(`Errore nell'aggiornamento: ${error.message}`);
@@ -74,7 +149,7 @@ async function handleUpdateLocation() {
 /**
  * Gestisce la cancellazione di un luogo.
  */
-async function handleDeleteLocation() {
+function handleDeleteLocation() {
     const name = savedLocationsSelect.value;
     if (!name || name === 'Carica un luogo...') {
         alert("Seleziona un luogo da cancellare.");
@@ -86,12 +161,12 @@ async function handleDeleteLocation() {
     }
 
     try {
-        await deleteLocation(name);
+        deleteLocationLocal(name);
         locationNameInput.value = '';
         latInput.value = '';
         lonInput.value = '';
         altInput.value = '0';
-        await loadLocations();
+        loadLocations();
         alert(`Luogo "${name}" eliminato.`);
     } catch (error) {
         alert(`Errore nella cancellazione: ${error.message}`);
@@ -116,14 +191,12 @@ function handleLoadSelectedLocation() {
         lonInput.value = lon;
         altInput.value = alt;
         locationNameInputHidden.value = name;
-        if (locationNameSearchInput) locationNameSearchInput.value = name; // Also update search form
+        if (locationNameSearchInput) locationNameSearchInput.value = name; 
         
         // Aggiorna anche i campi nascosti della ricerca
         if (latSearchInput) latSearchInput.value = lat;
         if (lonSearchInput) lonSearchInput.value = lon;
-        if (altSearchInput) altSearchInput.value = alt; // Also update search form
-    } else {
-        alert(`I dati per "${name}" sono incompleti o corrotti.`);
+        if (altSearchInput) altSearchInput.value = alt;
     }
 }
 
@@ -161,12 +234,12 @@ if (altInput) altInput.addEventListener('input', handleCoordinateInputChange);
 function initializeApp() {
     // La data di oggi è impostata dal backend se non già presente
     const dateInput = document.getElementById('date');
-    if (!dateInput.value) {
+    if (dateInput && !dateInput.value) {
         dateInput.value = new Date().toISOString().split('T')[0];
     }
 
-    // Sincronizza le coordinate una volta al caricamento
-    syncSearchCoords();
+    // Carica i luoghi salvati (client-side)
+    loadLocations();
 }
 
 // Avvia l'applicazione quando il DOM è pronto

@@ -1,15 +1,9 @@
 import os
-from flask import Flask, render_template, request, jsonify
-from flask_cors import CORS
+from flask import Flask, render_template, request
 from datetime import datetime
 
 # Importa la logica di business e le costanti
 from core.planetary_logic import calculate_planetary_hours, search_planetary_hours, PLANETS, ZODIAC_SIGNS
-from core.locations_logic import get_all_locations, create_location, delete_location, update_location
-
-# Importa i vecchi blueprint per mantenerli temporaneamente
-from api.routes import api_bp
-from api.locations_routes import locations_bp
 
 def create_app():
     """
@@ -21,13 +15,6 @@ def create_app():
     app.config['DEBUG'] = os.environ.get('FLASK_DEBUG', 'false').lower() == 'true'
     app.config['ENV'] = os.environ.get('FLASK_ENV', 'production')
     
-    # CORS è ancora utile per l'API di gestione dei luoghi che rimane asincrona
-    CORS(app, resources={r"/api/*": {"origins": "*"}})
-    
-    # Manteniamo le vecchie API per ora, ma la nuova logica sarà gestita da route principali
-    app.register_blueprint(api_bp, url_prefix='/api')
-    app.register_blueprint(locations_bp, url_prefix='/api/locations')
-
     # --- Filtri Jinja2 personalizzati ---
     def format_date_filter(iso_date):
         """Formatta una data ISO in un formato leggibile."""
@@ -54,7 +41,6 @@ def create_app():
 
     def get_render_context():
         """Helper per ottenere il contesto comune per il rendering dei template."""
-        locations = get_all_locations()
         moon_phases = [
             "New Moon", "Waxing Crescent", "First Quarter", "Waxing Gibbous",
             "Full Moon", "Waning Gibbous", "Last Quarter", "Waning Crescent"
@@ -64,7 +50,7 @@ def create_app():
             "zodiac_signs": [sign[1] for sign in ZODIAC_SIGNS],
             "moon_phases": moon_phases
         }
-        return {"locations": locations, "metadata": metadata}
+        return {"metadata": metadata}
 
     @app.route('/')
     def index():
@@ -85,14 +71,14 @@ def create_app():
             lat = float(request.form.get('lat'))
             lon = float(request.form.get('lon'))
             alt = float(request.form.get('alt', 0))
-            location_name = request.form.get('location_name', '') # Read the location name
+            location_name = request.form.get('location_name', '') 
             
             context.update({
                 "date": date_str,
                 "lat": lat,
                 "lon": lon,
                 "alt": alt,
-                "location_name": location_name # Add location name to context
+                "location_name": location_name 
             })
 
             calc_date = datetime.strptime(date_str, '%Y-%m-%d').date()
@@ -103,7 +89,7 @@ def create_app():
                 longitude=lon,
                 elevation=alt
             )
-            # Add location_name to results for daily_results.html
+            
             results['location_name'] = location_name if location_name else f"Lat: {lat:.4f}, Lon: {lon:.4f}, Alt: {alt:.0f}m"
             context['results'] = results
         except (ValueError, TypeError) as e:
@@ -134,17 +120,16 @@ def create_app():
             sign = request.args.get('sign')
             moon_phase = request.args.get('moon_phase')
             
-            # Coordinate (devono essere fornite per la ricerca)
+            # Coordinate
             lat = request.args.get('lat', type=float)
             lon = request.args.get('lon', type=float)
-            alt = request.args.get('alt', type=float) # Get alt from request.args
-            location_name = request.args.get('location_name', '') # Get location_name from request.args
+            alt = request.args.get('alt', type=float) 
+            location_name = request.args.get('location_name', '') 
 
             if lat is None or lon is None:
                 context['error'] = "Latitudine e Longitudine sono obbligatorie per la ricerca."
                 return render_template('index.html', **context)
             
-            # If alt is None, default to 0
             if alt is None:
                 alt = 0
 
@@ -156,11 +141,11 @@ def create_app():
             all_results = search_planetary_hours(
                 lat=lat,
                 lon=lon,
-                alt=alt, # Pass alt to search_planetary_hours
+                alt=alt,
                 planet=planet or None,
                 sign=sign or None,
                 moon_phase=moon_phase or None,
-                location_name=location_name # Pass location_name to search_planetary_hours
+                location_name=location_name 
             )
             
             total_results = len(all_results)
