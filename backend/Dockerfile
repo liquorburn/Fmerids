@@ -17,6 +17,6 @@ RUN mkdir -p data
 # Esponi la porta su cui Gunicorn sarà in ascolto
 EXPOSE 5001
 
-# Comando per avviare l'applicazione in produzione con Gunicorn
-CMD ["gunicorn", "--workers", "4", "--bind", "0.0.0.0:5001", "app:app"]
+# Comando per avviare l'applicazione con Gunicorn usando la porta dinamica (Railway) o 5001 come default
+CMD gunicorn --workers 4 --bind 0.0.0.0:${PORT:-5001} app:app
 
