@@ -161,13 +161,69 @@ if (altInput) altInput.addEventListener('input', handleCoordinateInputChange);
 function initializeApp() {
     // La data di oggi è impostata dal backend se non già presente
     const dateInput = document.getElementById('date');
-    if (!dateInput.value) {
+    if (dateInput && !dateInput.value) {
         dateInput.value = new Date().toISOString().split('T')[0];
     }
+    
+    // Sincronizza le coordinate una volta al caricamento, se la funzione esiste
+    if (typeof syncSearchCoords === 'function') {
+        syncSearchCoords();
+    }
 
-    // Sincronizza le coordinate una volta al caricamento
-    syncSearchCoords();
+    // Gestione del tema
+    initializeTheme();
 }
 
 // Avvia l'applicazione quando il DOM è pronto
 document.addEventListener('DOMContentLoaded', initializeApp);
+
+
+// --- LOGICA PER IL CAMBIO TEMA ---
+
+const themeSwitcher = document.getElementById('theme-switcher');
+const themeStylesheets = [
+    document.getElementById('theme-violet-eclipse'),
+    document.getElementById('theme-crimson-noir'),
+    document.getElementById('theme-enchanted-forest')
+];
+
+/**
+ * Applica il tema selezionato disabilitando gli altri.
+ * @param {string} themeName - Il nome del tema da attivare (es. "violet-eclipse").
+ */
+function applyTheme(themeName) {
+    // Disabilita tutti i fogli di stile del tema
+    themeStylesheets.forEach(sheet => {
+        if (sheet) sheet.disabled = true;
+    });
+
+    // Se non è il tema di default, abilita il foglio di stile corrispondente
+    if (themeName !== 'default') {
+        const selectedSheet = document.getElementById(`theme-${themeName}`);
+        if (selectedSheet) {
+            selectedSheet.disabled = false;
+        }
+    }
+}
+
+/**
+ * Salva il tema selezionato nel localStorage e lo applica.
+ */
+function handleThemeChange() {
+    const selectedTheme = themeSwitcher.value;
+    localStorage.setItem('selectedTheme', selectedTheme);
+    applyTheme(selectedTheme);
+}
+
+/**
+ * Inizializza il selettore del tema e applica il tema salvato al caricamento della pagina.
+ */
+function initializeTheme() {
+    const savedTheme = localStorage.getItem('selectedTheme') || 'default';
+    
+    if (themeSwitcher) {
+        themeSwitcher.value = savedTheme;
+        applyTheme(savedTheme);
+        themeSwitcher.addEventListener('change', handleThemeChange);
+    }
+}

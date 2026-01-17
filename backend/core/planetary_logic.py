@@ -2,9 +2,11 @@ import argparse
 import os
 import math
 import ephem
+import pytz
 from datetime import datetime, timedelta, date
 from astral import Observer
 from astral import sun
+from timezonefinder import TimezoneFinder
 
 # --- Dati Astrologici Fondamentali ---
 
@@ -102,9 +104,19 @@ def calculate_planetary_hours(calculation_date: date, latitude: float, longitude
     Calcola le ore planetarie per una data e una posizione geografica specifiche.
     """
     try:
-        # 1. Setup degli osservatori
+        # 1. Trova il fuso orario corretto per le coordinate date
+        tf = TimezoneFinder()
+        timezone_str = tf.timezone_at(lng=longitude, lat=latitude)
+        if not timezone_str:
+            # Fallback a UTC se il fuso orario non viene trovato
+            timezone_str = "UTC"
+        local_tz = pytz.timezone(timezone_str)
+
+        # 2. Setup degli osservatori
+        # Astral observer con fuso orario locale
         astral_observer = Observer(latitude=latitude, longitude=longitude, elevation=elevation)
         
+        # PyEphem observer (lavora in UTC, quindi non necessita di fuso orario)
         ephem_observer = ephem.Observer()
         ephem_observer.lat = str(latitude)
         ephem_observer.lon = str(longitude)
@@ -112,24 +124,25 @@ def calculate_planetary_hours(calculation_date: date, latitude: float, longitude
         ephem_observer.pressure = 0
         ephem_observer.horizon = '0'
 
-        # 2. Calcolo alba e tramonto con Astral
-        sun_times = sun.sun(astral_observer, date=calculation_date)
+        # 3. Calcolo alba e tramonto con Astral nel fuso orario locale
+        # Nota: passiamo il fuso orario direttamente alla funzione sun()
+        sun_times = sun.sun(astral_observer, date=calculation_date, tzinfo=local_tz)
         sunrise = sun_times["sunrise"]
         sunset = sun_times["sunset"]
         
         # Per la durata della notte, serve l'alba del giorno dopo
         tomorrow = calculation_date + timedelta(days=1)
-        sun_times_tomorrow = sun.sun(astral_observer, date=tomorrow)
+        sun_times_tomorrow = sun.sun(astral_observer, date=tomorrow, tzinfo=local_tz)
         sunrise_tomorrow = sun_times_tomorrow["sunrise"]
 
-        # 3. Calcolo durata ore diurne e notturne
+        # 4. Calcolo durata ore diurne e notturne
         day_duration = sunset - sunrise
         night_duration = sunrise_tomorrow - sunset
         
         day_hour_duration = day_duration / 12
         night_hour_duration = night_duration / 12
 
-        # 4. Determinare il pianeta reggente del giorno
+        # 5. Determinare il pianeta reggente del giorno
         day_of_week = calculation_date.strftime("%A")
         first_hour_planet = RULERS[day_of_week]
         
@@ -138,13 +151,14 @@ def calculate_planetary_hours(calculation_date: date, latitude: float, longitude
         
         planetary_hours = []
         
-        # 5. Calcolo ore diurne
+        # 6. Calcolo ore diurne
         current_time = sunrise
         for i in range(12):
             planet_name = PLANETS[(start_index + i) % 7]
             hour_midpoint = current_time + (day_hour_duration / 2)
-            position_status = get_planet_position_status(ephem_observer, planet_name, hour_midpoint)
-            moon_visible = is_moon_visible(ephem_observer, hour_midpoint)
+            # Per PyEphem, usiamo l'orario convertito in UTC
+            position_status = get_planet_position_status(ephem_observer, planet_name, hour_midpoint.astimezone(pytz.utc))
+            moon_visible = is_moon_visible(ephem_observer, hour_midpoint.astimezone(pytz.utc))
             
             planetary_hours.append({
                 "hour": i + 1,
@@ -156,13 +170,14 @@ def calculate_planetary_hours(calculation_date: date, latitude: float, longitude
             })
             current_time += day_hour_duration
 
-        # 6. Calcolo ore notturne
+        # 7. Calcolo ore notturne
         current_time = sunset
         for i in range(12):
             planet_name = PLANETS[(start_index + 12 + i) % 7]
             hour_midpoint = current_time + (night_hour_duration / 2)
-            position_status = get_planet_position_status(ephem_observer, planet_name, hour_midpoint)
-            moon_visible = is_moon_visible(ephem_observer, hour_midpoint)
+            # Per PyEphem, usiamo l'orario convertito in UTC
+            position_status = get_planet_position_status(ephem_observer, planet_name, hour_midpoint.astimezone(pytz.utc))
+            moon_visible = is_moon_visible(ephem_observer, hour_midpoint.astimezone(pytz.utc))
 
             planetary_hours.append({
                 "hour": i + 13,
@@ -174,13 +189,13 @@ def calculate_planetary_hours(calculation_date: date, latitude: float, longitude
             })
             current_time += night_hour_duration
             
-        # 7. Calcolo dati aggiuntivi
+        # 8. Calcolo dati aggiuntivi
         zodiac_sign = get_zodiac_sign(calculation_date)
         moon_phase_info = get_moon_phase(calculation_date)
 
         return {
             "date": calculation_date.isoformat(),
-            "location": {"latitude": latitude, "longitude": longitude, "elevation": elevation},
+            "location": {"latitude": latitude, "longitude": longitude, "elevation": elevation, "timezone": timezone_str},
             "sun_info": {
                 "sunrise": sunrise.isoformat(),
                 "sunset": sunset.isoformat()
@@ -196,7 +211,7 @@ def calculate_planetary_hours(calculation_date: date, latitude: float, longitude
 
     except Exception as e:
         # Aggiungiamo un log più dettagliato in caso di errore
-        print(f"Error in calculate_planetary_hours: {e}")
+        print(f"Error in calculate_planetary_hours: {e} at line {e.__traceback__.tb_lineno}")
         return {"error": "An error occurred during calculation. This might be due to the location being in a polar region where the sun does not set or rise."}
 
 def search_planetary_hours(lat, lon, alt, planet=None, sign=None, moon_phase=None, location_name=""):

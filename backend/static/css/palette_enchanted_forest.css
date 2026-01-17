@@ -1,0 +1,10 @@
+:root {
+    --bg-color: #1A1A2E;
+    --text-color: #E0E0E0;
+    --primary-accent-color: #006400;
+    --secondary-accent-color: #008000; /* A slightly lighter green for hover */
+    --surface-bg-color: #2C0735;
+    --border-color: #4A004A;
+    --error-color: #8B0000;
+    --success-color: #006400;
+}

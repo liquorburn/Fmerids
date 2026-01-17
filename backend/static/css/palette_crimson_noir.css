@@ -1,0 +1,10 @@
+:root {
+    --bg-color: #1A1A1A;
+    --text-color: #E0E0E0;
+    --primary-accent-color: #E53935;
+    --secondary-accent-color: #E53935; /* Same as primary for this theme */
+    --surface-bg-color: #2C2C2C;
+    --border-color: #444;
+    --error-color: #E53935;
+    --success-color: #4CAF50;
+}

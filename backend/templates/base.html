@@ -6,14 +6,27 @@
     <title>Fmerids - Calcolo Ore Planetarie</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <!-- Custom CSS -->
+    
+    <!-- Theme Stylesheets -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/palette_violet_eclipse.css') }}" id="theme-violet-eclipse" disabled>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/palette_crimson_noir.css') }}" id="theme-crimson-noir" disabled>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/palette_enchanted_forest.css') }}" id="theme-enchanted-forest" disabled>
+
 </head>
 <body>
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
         <div class="container">
             <a class="navbar-brand" href="/">Fmerids</a>
+            <div class="ms-auto">
+                <select id="theme-switcher" class="form-select">
+                    <option value="default">Default Dark</option>
+                    <option value="violet-eclipse">Violet Eclipse</option>
+                    <option value="crimson-noir">Crimson Noir</option>
+                    <option value="enchanted-forest">Enchanted Forest</option>
+                </select>
+            </div>
         </div>
     </nav>
 
@@ -29,7 +42,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <!-- Custom JS Modules -->
     <script src="{{ url_for('static', filename='js/apiService.js') }}" type="module"></script>
-    <script src="{{ url_for('static', filename='js/uiUpdater.js') }}" type="module"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}" type="module"></script>
 </body>
 </html>

@@ -4,3 +4,5 @@ astral==3.2
 skyfield
 ephem
 gunicorn
+timezonefinder
+pytz

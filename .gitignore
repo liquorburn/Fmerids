@@ -42,3 +42,6 @@ certs/
 # Obsolete
 # Ignore the old, now-unused frontend directory
 frontend/
+
+.DS_Store/
+backend/.DS_Store/

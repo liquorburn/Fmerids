@@ -1,0 +1,74 @@
+/* Use CSS variables for theming */
+
+body {
+    background-color: var(--bg-color, #212529); /* Fallback to default Bootstrap dark */
+    color: var(--text-color, #dee2e6);
+}
+
+.navbar, footer {
+    background-color: var(--surface-bg-color, #343a40) !important;
+}
+
+.card {
+    background-color: var(--surface-bg-color, #343a40);
+    border-color: var(--border-color, #495057);
+}
+
+.btn-primary {
+    background-color: var(--primary-accent-color);
+    border-color: var(--primary-accent-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--secondary-accent-color);
+    border-color: var(--secondary-accent-color);
+}
+
+.btn-secondary {
+    background-color: var(--secondary-accent-color);
+    border-color: var(--secondary-accent-color);
+}
+
+.btn-secondary:hover {
+    background-color: var(--primary-accent-color);
+    border-color: var(--primary-accent-color);
+}
+
+a {
+    color: var(--primary-accent-color);
+}
+
+a:hover {
+    color: var(--secondary-accent-color);
+}
+
+.form-control, .form-select {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
+
+.form-control:focus, .form-select:focus {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    border-color: var(--primary-accent-color);
+    box-shadow: 0 0 0 0.25rem rgba(var(--primary-accent-color-rgb), 0.25); /* requires conversion of hex to rgb */
+}
+
+.table {
+    --bs-table-bg: var(--surface-bg-color);
+    --bs-table-border-color: var(--border-color);
+    --bs-table-color: var(--text-color);
+    --bs-table-striped-bg: var(--bg-color);
+    --bs-table-striped-color: var(--text-color);
+    --bs-table-hover-bg: var(--border-color);
+    --bs-table-hover-color: var(--text-color);
+}
+
+.text-success {
+    color: var(--success-color) !important;
+}
+
+.text-danger {
+    color: var(--error-color) !important;
+}
