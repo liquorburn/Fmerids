@@ -219,7 +219,7 @@ def search_planetary_hours(lat, lon, alt, planet=None, sign=None, moon_phase=Non
     Cerca le ore planetarie che corrispondono ai criteri specificati in un anno.
     """
     today = date.today()
-    one_year_from_now = today + timedelta(days=365)
+    one_year_from_now = today + timedelta(days=30)
     current_date = today
     
     found_hours = []
