@@ -238,10 +238,8 @@ function initializeApp() {
         dateInput.value = new Date().toISOString().split('T')[0];
     }
     
-    // Carica i luoghi salvati (client-side), se la funzione esiste
-    if (typeof syncSearchCoords === 'function') {
-        loadLocations();
-    }
+    // Carica i luoghi salvati (client-side)
+    loadLocations();
 
     // Gestione del tema
     initializeTheme();
