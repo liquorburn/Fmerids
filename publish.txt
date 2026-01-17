@@ -1,0 +1,16 @@
+ Prossimi Passi per la Pubblicazione:
+
+   1. Carica il codice su GitHub: Crea un repository (anche privato) e carica tutta la cartella Fmerids.
+   2. Vai su Railway.app:
+       * Crea un nuovo progetto e seleziona "Deploy from GitHub repo".
+       * Scegli il tuo repository.
+   3. Configura il Volume su Railway (Molto Importante):
+       * Nella dashboard di Railway, clicca sull'app appena creata.
+       * Vai nella scheda "Volumes" e clicca su "Add Volume".
+       * Imposta il Mount Path su: /app/data.
+   4. Associa il Dominio:
+       * Vai in "Settings" > "Domains".
+       * Inserisci il tuo dominio e segui le istruzioni DNS (Record A e CNAME) che ti ho spiegato prima.
+
+  Nota sulla sicurezza: Se hai dei file sensibili o file di test che non vuoi pubblicare, assicurati che siano elencati
+  nel tuo .gitignore prima di caricare su GitHub.

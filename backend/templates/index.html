@@ -47,11 +47,6 @@
                     <label for="saved-locations" class="form-label">Luoghi Salvati</label>
                     <select id="saved-locations" class="form-select">
                         <option selected disabled>Carica un luogo...</option>
-                        {% if locations %}
-                            {% for name, data in locations.items() %}
-                                <option value="{{ name }}" data-lat="{{ data.lat }}" data-lon="{{ data.lon }}" data-alt="{{ data.alt }}">{{ name }}</option>
-                            {% endfor %}
-                        {% endif %}
                     </select>
                 </div>
                 <div class="btn-group w-100" role="group">

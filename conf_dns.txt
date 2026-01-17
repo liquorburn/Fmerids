@@ -1,0 +1,35 @@
+Come funziona il collegamento
+
+  Quando acquisti un dominio (es. fmerids.com) da un provider (come Namecheap, GoDaddy, Google Domains, ecc.), tu
+  possiedi il "nome". Railway ti fornirà il "server" (l'indirizzo IP o l'host) dove gira la tua app. Il tuo compito è
+  dire al dominio: "Ehi, quando qualcuno ti cerca, vai a bussare alla porta di Railway".
+
+  I Passaggi Pratici
+
+   1. Deploy dell'App su Railway:
+      Per prima cosa, pubblichi la tua app. Railway le assegnerà un indirizzo provvisorio e brutto (tipo
+  fmerids-production.up.railway.app).
+
+   2. Impostazioni Dominio su Railway:
+      Vai nella dashboard del tuo progetto su Railway, clicchi su Settings > Domains e inserisci il dominio che hai
+  comprato (es. fmerids.com).
+
+   3. Configurazione DNS (La parte "tecnica"):
+      Railway ti mostrerà a schermo esattamente cosa copiare. Ti dirà di aggiungere due record nel pannello di controllo
+  di chi ti ha venduto il dominio:
+
+       * Record CNAME: Serve per collegare il sottodominio www (es. www.fmerids.com).
+           * Host: www
+           * Value: fmerids-production.up.railway.app (l'indirizzo che ti dà Railway).
+       * Record A (o ALIAS/ANAME): Serve per il dominio nudo (fmerids.com senza www).
+           * Host: @ (che significa "radice")
+           * Value: 75.2.3.4 (un indirizzo IP che Railway ti fornirà).
+
+   4. Attesa e HTTPS automatico:
+      Salvi queste impostazioni nel pannello del tuo dominio. Dopo qualche minuto (o fino a 24h, ma di solito è rapido),
+  Railway rileverà il collegamento e genererà automaticamente il certificato SSL. Il tuo sito sarà subito sicuro con il
+  lucchetto verde (https://fmerids.com), senza che tu debba configurare nulla lato server.
+
+  Riassunto
+  Non devi toccare codici o server. È un "copia-incolla" di due righe dal sito di Railway al sito dove hai comprato il
+  dominio.
