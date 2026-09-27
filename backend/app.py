@@ -3,7 +3,7 @@ from flask import Flask, render_template, request
 from datetime import datetime
 
 # Importa la logica di business e le costanti
-from core.planetary_logic import calculate_planetary_hours, search_planetary_hours, PLANETS, ZODIAC_SIGNS
+from core.planetary_logic import calculate_planetary_hours, search_planetary_hours, PLANETS, ZODIAC_SIGNS, MOON_PHASES
 
 def create_app():
     """
@@ -18,6 +18,7 @@ def create_app():
     # --- Filtri Jinja2 personalizzati ---
     def format_date_filter(iso_date):
         """Formatta una data ISO in un formato leggibile."""
+        if not iso_date: return ''
         d = datetime.fromisoformat(iso_date).date()
         return d.strftime('%A, %d %B %Y')
 
@@ -41,14 +42,10 @@ def create_app():
 
     def get_render_context():
         """Helper per ottenere il contesto comune per il rendering dei template."""
-        moon_phases = [
-            "New Moon", "Waxing Crescent", "First Quarter", "Waxing Gibbous",
-            "Full Moon", "Waning Gibbous", "Last Quarter", "Waning Crescent"
-        ]
         metadata = {
             "planets": PLANETS,
             "zodiac_signs": [sign[1] for sign in ZODIAC_SIGNS],
-            "moon_phases": moon_phases
+            "moon_phases": MOON_PHASES
         }
         return {"metadata": metadata}
 
@@ -90,8 +87,11 @@ def create_app():
                 elevation=alt
             )
             
-            results['location_name'] = location_name if location_name else f"Lat: {lat:.4f}, Lon: {lon:.4f}, Alt: {alt:.0f}m"
-            context['results'] = results
+            if "error" in results:
+                context['error'] = results['error']
+            else:
+                results['location_name'] = location_name if location_name else f"Lat: {lat:.4f}, Lon: {lon:.4f}, Alt: {alt:.0f}m"
+                context['results'] = results
         except (ValueError, TypeError) as e:
             context['error'] = f"Dati non validi: {e}"
 

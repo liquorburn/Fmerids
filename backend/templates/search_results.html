@@ -65,7 +65,13 @@
                                 <td>{{ item.get('planet_position_status', 'N/D') | safe }}</td>
                                 <td>{{ item.type }}</td>
                                 <td>{{ item.zodiac_sign }}</td>
-                                <td>{{ item.moon_phase }}</td>
+                                <td>{{ item.moon_phase.phase }} ({{ item.moon_phase.lunar_age }})<br>
+                                <small>Luminosità: {{ item.moon_phase.illumination }}% | In cielo: {% if item.moon_phase.is_visible %}Sì{% else %}No{% endif %}</small><br>
+                                <small>Posizione: {{ item.moon_phase.moon_longitude }}</small><br>
+                                <small>Giorno Lunare: {{ item.moon_phase.lunar_day }} ({{ item.moon_phase.lunar_day_planet }})</small><br>
+                                <small class="d-block mt-1"><strong>Casa {{ item.moon_phase.lunar_house.name }} ({{ item.moon_phase.lunar_house.degrees }}):</strong><br>
+                                Governatore: {{ item.moon_phase.lunar_house.governor }}<br>
+                                <i>{{ item.moon_phase.lunar_house.desc }}</i></small></td>
                                 <td>{% if item.is_moon_visible %}&#x2713;{% endif %}</td>
                             </tr>
                         {% endfor %}

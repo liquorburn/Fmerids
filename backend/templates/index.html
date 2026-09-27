@@ -109,7 +109,7 @@
             <!-- I controlli per la paginazione (es. risultati per pagina) verranno iniettati qui -->
         </div>
         <div id="results-container" class="position-relative">
-            {% if results %}
+            {% if results or error %}
                 {% include 'daily_results.html' %}
             {% elif search_results %}
                 {% include 'search_results.html' %}

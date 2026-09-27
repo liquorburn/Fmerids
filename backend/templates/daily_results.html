@@ -1,4 +1,4 @@
-{% if results %}
+{% if results and not error and results.planetary_hours %}
     {# Filtra le ore diurne e notturne #}
     {% set dayHours = [] %}
     {% set nightHours = [] %}
@@ -15,10 +15,18 @@
         <div class="card-body">
             <h4 class="card-title">Riepilogo per {{ results.date | format_date }}<br><small class="text-muted">Luogo: {% if results.location_name %}{{ results.location_name }} (Lat {{ "%.4f"|format(results.location.latitude) }}, Lon {{ "%.4f"|format(results.location.longitude) }}, Alt {{ "%.0f"|format(results.location.elevation) }}m){% else %}Lat {{ "%.4f"|format(results.location.latitude) }}, Lon {{ "%.4f"|format(results.location.longitude) }}, Alt {{ "%.0f"|format(results.location.elevation) }}m{% endif %}</small></h4>
             <div class="row text-center">
-                <div class="col-md-3"><strong>Alba:</strong><br>{{ results.sun_info.sunrise | format_time }}</div>
-                <div class="col-md-3"><strong>Tramonto:</strong><br>{{ results.sun_info.sunset | format_time }}</div>
-                <div class="col-md-3"><strong>Segno Zodiacale:</strong><br>{{ results.zodiac_sign }}</div>
-                <div class="col-md-3"><strong>Fase Lunare:</strong><br>{{ results.moon_phase.phase }} ({{ results.moon_phase.illumination }}%)</div>
+                <div class="col-md-4"><strong>Alba:</strong><br>{{ results.sun_info.sunrise | format_time }}</div>
+                <div class="col-md-4"><strong>Tramonto:</strong><br>{{ results.sun_info.sunset | format_time }}</div>
+                <div class="col-md-4"><strong>Segno Zodiacale:</strong><br>{{ results.zodiac_sign }}</div>
+            </div>
+            <div class="row text-left">
+                 <div class="col-md-12"><strong>Fase Lunare:</strong><br>{{ results.moon_phase.phase }} ({{ results.moon_phase.lunar_age }})<br>
+                 <small>Luminosità: {{ results.moon_phase.illumination }}% | In cielo: {% if results.moon_phase.is_visible %}Sì{% else %}No{% endif %}</small><br>
+                 <small>Posizione: {{ results.moon_phase.moon_longitude }}</small><br>
+                 <small>Giorno Lunare: {{ results.moon_phase.lunar_day }} ({{ results.moon_phase.lunar_day_planet }})</small><br>
+                 <small class="d-block mt-1"><strong>Casa {{ results.moon_phase.lunar_house.name }} ({{ results.moon_phase.lunar_house.degrees }}):</strong><br>
+                 Governatore: {{ results.moon_phase.lunar_house.governor }}<br>
+                 <i>{{ results.moon_phase.lunar_house.desc }}</i></small></div>
             </div>
         </div>
     </div>

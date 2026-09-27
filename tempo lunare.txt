@@ -1,0 +1,8 @@
+1° quarto | 2° quarto | 3° quarto | 4° quarto |
+sole      |sole       |sole       |sole       |
+marte     |marte      |marte      |marte      |
+giove     |giove      |giove      |giove      |
+saturno   |saturno    |saturno    |saturno    |
+luna      |luna       |luna       |luna       |
+mercurio  |mercurio   |mercurio   |mercurio   |
+venere    |venere     |venere     |venere     |
